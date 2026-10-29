@@ -210,6 +210,33 @@ input{font:inherit;color:var(--ink);background:var(--paper);border:2px solid var
 .pg span{min-width:54px;text-align:center;color:var(--ink-soft);font-variant-numeric:tabular-nums}
 .tools2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .tools2 button{background:none;border:2px solid var(--line);border-radius:14px;padding:10px;font-family:var(--round);font-size:16px}
+.heroes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 12px}
+.heroes button{border:2px solid var(--line);background:var(--paper);border-radius:16px;padding:6px 2px 4px;font-size:13px;line-height:1.3}
+.heroes img,.heroes .pen{display:block;width:100%;max-width:70px;aspect-ratio:1;margin:0 auto 2px;background:#fff;border-radius:12px}
+.heroes .pen{display:grid;place-items:center;font-size:30px}
+.heroes button[aria-checked="true"]{border-color:var(--wood);background:var(--cream);color:#33261C}
+#storyBook .book .txt,#storyBook .book .deco{background:var(--tint,transparent)}
+.book .deco svg{display:block;width:100%;height:auto;aspect-ratio:400/64}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #storyBook .book .txt,:root:not([data-theme="light"]) #storyBook .book .deco{background:transparent}}
+:root[data-theme="dark"] #storyBook .book .txt,:root[data-theme="dark"] #storyBook .book .deco{background:transparent}
+@media print{.ppage .pdeco svg{display:block;width:100%;height:auto;margin-top:5mm}}
+.pad{position:relative;width:100%;max-width:300px;aspect-ratio:1;margin:0 auto;background:#fff;border:3px dashed var(--line);border-radius:22px;overflow:hidden;touch-action:none}
+.pad canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.pad .hint{position:absolute;inset:0;display:grid;place-items:center;color:#B5A795;font-size:16px;line-height:1.5;pointer-events:none;text-align:center;padding:20px}
+.crayons{display:flex;justify-content:center;gap:6px;margin:10px 0 0;flex-wrap:wrap}
+.crayons button{width:29px;height:29px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--line);padding:0}
+.crayons button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink);transform:scale(1.12)}
+.padtools{display:flex;justify-content:center;gap:8px;margin-top:10px}
+.padtools button{background:none;border:2px solid var(--line);border-radius:999px;padding:3px 14px;font-size:14.5px}
+#storyBook .book{border:4px solid var(--pal,var(--line));box-shadow:0 6px 0 var(--pal,var(--line))}
+#storyBook .book .pic img.pal{border-color:var(--pal,var(--paper))}
+.book .pic img.me{position:absolute;right:12px;bottom:-34px;width:92px;height:92px;object-fit:contain;background:#fff;border-radius:16px;border:4px solid var(--pal,var(--paper));box-shadow:0 3px 8px rgba(0,0,0,.18);transform:rotate(4deg)}
+.book .cov .me-big{display:block;width:140px;height:140px;object-fit:contain;background:#fff;border-radius:20px;border:5px solid var(--pal,var(--wood-edge));margin:-92px auto 10px;position:relative;transform:rotate(-3deg);box-shadow:0 4px 10px rgba(0,0,0,.18)}
+@media print{
+  .ppage .pw{position:relative;margin-bottom:13mm}
+  .ppage img.pme{position:absolute;right:5mm;bottom:-10mm;width:34mm;height:34mm;object-fit:contain;background:#fff;border:1.2mm solid #fff;border-radius:4mm;box-shadow:0 .8mm 2mm rgba(0,0,0,.25);transform:rotate(4deg)}
+  .ppage img.pmeBig{display:block;width:55mm;height:55mm;object-fit:contain;margin:-30mm auto 0;position:relative;background:#fff;border:1.5mm solid #fff;border-radius:5mm;box-shadow:0 .8mm 2mm rgba(0,0,0,.25)}
+}
 #printBook{display:none}
 @media print{
   body.printing{background:#fff}
@@ -322,6 +349,14 @@ footer{margin-top:30px;font-size:13.5px;color:var(--ink-soft);line-height:1.6}
         <div class="pals" id="sPals" role="radiogroup" aria-label="陪伴的角色"></div>
         <p class="lab">小朋友喜歡什麼？</p>
         <div class="likes" id="sLikes" role="radiogroup" aria-label="小朋友喜歡的東西"></div>
+        <p class="lab" id="heroLab">畫出小朋友自己（也可以不畫）</p>
+        <div class="heroes" id="heroes" role="radiogroup" aria-label="主角" hidden></div>
+        <div id="padBox">
+        <div class="pad"><canvas id="padC" width="600" height="600" aria-label="畫圖區：用手指畫出小朋友自己"></canvas><div class="hint" id="padHint">用手指在這裡<br>畫出小朋友自己<br>他就是故事的主角！</div></div>
+        <div class="crayons" id="crayons" aria-label="蠟筆顏色"></div>
+        <div class="padtools"><button id="padUndo" type="button">上一步</button><button id="padClear" type="button">全部清除</button></div>
+        <p class="muted" style="margin:6px 0 0;text-align:center">畫的圖只留在這支手機，不會上傳。</p>
+        </div>
         <p class="muted" id="sErr" role="alert" style="color:var(--alert);margin:12px 0 0" hidden></p>
         <button class="mk" id="sMake">做一本繪本</button>
       </div>
@@ -730,7 +765,142 @@ document.querySelectorAll("[data-img]").forEach(i=>{i.src=IMG[i.dataset.img]});
 $("#sPals").innerHTML=Object.keys(PALS).map(k=>`<button role="radio" aria-checked="${k===sPal}" data-pal="${k}"><img src="${IMG[k]}" alt="">${PALS[k]}</button>`).join("");
 $("#sLikes").innerHTML=Object.keys(LIKES).map(k=>`<button role="radio" aria-checked="${k===sLike}" data-like="${k}">${LIKES[k][0]} ${LIKES[k][1]}</button>`).join("");
 $("#sPals").addEventListener("click",e=>{const b=e.target.closest("[data-pal]");if(!b)return;sPal=b.dataset.pal;$("#sPals").querySelectorAll("button").forEach(x=>x.setAttribute("aria-checked",x===b));SND.voice(sPal)});
-$("#sLikes").addEventListener("click",e=>{const b=e.target.closest("[data-like]");if(!b)return;sLike=b.dataset.like;$("#sLikes").querySelectorAll("button").forEach(x=>x.setAttribute("aria-checked",x===b))});
+$("#sLikes").addEventListener("click",e=>{const b=e.target.closest("[data-like]");if(!b)return;sLike=b.dataset.like;$("#sLikes").querySelectorAll("button").forEach(x=>x.setAttribute("aria-checked",x===b));heroUI()});
+/* Storybook themes: original flat illustrations drawn in SVG (no external art).
+   PRINCESS: three princess hero stickers.  THEME: per-"like" bottom border strip + page tint. */
+const SVGURI=s=>"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(s);
+function princessSVG(o){
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  ${o.back||""}
+  <path d="M34 118 C36 92 44 80 60 80 C76 80 84 92 86 118 Z" fill="${o.dress}"/>
+  <path d="M46 84 Q60 92 74 84 L72 80 Q60 86 48 80 Z" fill="${o.trim}"/>
+  ${o.badge||""}
+  <rect x="55" y="70" width="10" height="12" rx="4" fill="#F2C7A8"/>
+  <circle cx="60" cy="54" r="22" fill="#F6D3B8"/>
+  ${o.hair}
+  <ellipse cx="52" cy="57" rx="2.6" ry="3.4" fill="#33261C"/><ellipse cx="68" cy="57" rx="2.6" ry="3.4" fill="#33261C"/>
+  <circle cx="52.8" cy="55.8" r=".9" fill="#fff"/><circle cx="68.8" cy="55.8" r=".9" fill="#fff"/>
+  <circle cx="46" cy="64" r="4" fill="#F7A1A8" opacity=".55"/><circle cx="74" cy="64" r="4" fill="#F7A1A8" opacity=".55"/>
+  <path d="M55 66 Q60 70.5 65 66" stroke="#B4533F" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <g transform="translate(60 26)">
+    <path d="M-17 6 L-19 -10 L-9 -2 L0 -14 L9 -2 L19 -10 L17 6 Z" fill="#F4C430" stroke="#C9932A" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="0" cy="-1" r="3" fill="${o.gem}"/><circle cx="-10" cy="2" r="2" fill="#fff"/><circle cx="10" cy="2" r="2" fill="#fff"/>
+  </g></svg>`;
+}
+const PRINCESS={
+  p1:{name:"花朵公主",src:SVGURI(princessSVG({
+    back:`<path d="M36 56 C34 86 40 100 50 104 L70 104 C80 100 86 86 84 56 Z" fill="#7A4A2A"/>`,
+    hair:`<path d="M38 56 C38 36 50 30 60 30 C72 30 84 38 82 58 C76 46 66 42 60 41 C54 44 44 48 38 56 Z" fill="#7A4A2A"/>`,
+    dress:"#F28DB2",trim:"#FFD3E2",gem:"#E5533D",
+    badge:`<g transform="translate(60 100)"><circle r="5" fill="#fff"/><circle r="2.2" fill="#F4C430"/><circle cx="0" cy="-6.5" r="3" fill="#fff"/><circle cx="6.2" cy="-2" r="3" fill="#fff"/><circle cx="-6.2" cy="-2" r="3" fill="#fff"/><circle cx="3.8" cy="5.3" r="3" fill="#fff"/><circle cx="-3.8" cy="5.3" r="3" fill="#fff"/><circle r="2.4" fill="#F4C430"/></g>`}))},
+  p2:{name:"星星公主",src:SVGURI(princessSVG({
+    back:`<path d="M37 52 C35 70 38 78 44 80 L76 80 C82 78 85 70 83 52 Z" fill="#2B2B33"/>`,
+    hair:`<path d="M37 56 C36 36 48 29 60 29 C73 29 85 36 83 56 L80 56 C78 46 72 42 66 41 L52 41 C46 43 41 48 40 56 Z" fill="#2B2B33"/>`,
+    dress:"#8FA8E8",trim:"#DCE5FF",gem:"#2F6FB5",
+    badge:`<path transform="translate(60 101)" d="M0 -7 L2 -2 L7.5 -2 L3 1.5 L4.8 7 L0 3.8 L-4.8 7 L-3 1.5 L-7.5 -2 L-2 -2 Z" fill="#FFE27A" stroke="#fff" stroke-width="1.2"/>`}))},
+  p3:{name:"陽光公主",src:SVGURI(princessSVG({
+    back:`<path d="M36 64 C30 74 30 92 36 98 C40 92 40 76 40 64 Z M84 64 C90 74 90 92 84 98 C80 92 80 76 80 64 Z" fill="#A8642A"/><circle cx="36" cy="100" r="3.5" fill="#E5533D"/><circle cx="84" cy="100" r="3.5" fill="#E5533D"/>`,
+    hair:`<path d="M38 58 C37 37 49 30 60 30 C72 30 84 37 82 58 C79 48 72 43 64 42 L60 46 L56 42 C48 43 41 48 38 58 Z" fill="#A8642A"/>`,
+    dress:"#F6C445",trim:"#FFF0B8",gem:"#3F9E5A",
+    badge:`<g transform="translate(60 101)"><circle r="4" fill="#fff"/><g stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M0 -7.5V-5.5M0 5.5V7.5M-7.5 0H-5.5M5.5 0H7.5M-5.3 -5.3L-3.9 -3.9M3.9 3.9L5.3 5.3M5.3 -5.3L3.9 -3.9M-3.9 3.9L-5.3 5.3"/></g></g>`}))}
+};
+/* bottom strips, viewBox 0 0 400 64 */
+const STRIP=b=>`<svg viewBox="0 0 400 64" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${b}</svg>`;
+const blk=(x,y,w,h,c)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="${c}"/><rect x="${x+3}" y="${y+3}" width="${w-6}" height="5" rx="2.5" fill="#fff" opacity=".35"/>`;
+const THEME={
+  blocks:{tint:"#FFF8E8",svg:STRIP(
+    blk(6,40,26,24,"#E5533D")+blk(6,16,26,24,"#F4C430")+`<path d="M6 16 L19 2 L32 16 Z" fill="#3F9E5A"/>`+
+    blk(34,40,40,24,"#2F6FB5")+`<path d="M38 40 A16 14 0 0 1 70 40 Z" fill="#F08A24"/>`+
+    [90,118,146,174,202,230,258,286,314].map((x,i)=>blk(x,46,26,18,["#F4C430","#3F9E5A","#E5533D","#2F6FB5","#F08A24","#E06C9F","#F4C430","#3F9E5A","#E5533D"][i])).join("")+
+    blk(344,40,50,24,"#F08A24")+blk(352,16,34,24,"#2F6FB5")+`<circle cx="369" cy="9" r="8" fill="#F4C430"/><circle cx="366" cy="6" r="2.5" fill="#fff" opacity=".5"/>`)},
+  dino:{tint:"#F0F8EA",svg:STRIP(
+    `<path d="M0 64 V52 Q60 40 120 52 T240 50 T400 52 V64 Z" fill="#9BD08A"/>`+
+    `<g fill="#5FB36B"><ellipse cx="70" cy="46" rx="24" ry="12"/><path d="M86 42 Q96 30 98 12 L106 12 Q106 32 92 48 Z"/><ellipse cx="104" cy="12" rx="9" ry="6"/><path d="M48 46 Q30 46 22 56 Q36 52 52 52 Z"/><rect x="56" y="52" width="7" height="12" rx="3"/><rect x="78" y="52" width="7" height="12" rx="3"/></g><circle cx="106" cy="10" r="1.6" fill="#33261C"/>`+
+    `<g fill="#3F9E5A" opacity=".55">${[150,186,222].map(x=>`<g transform="translate(${x} 54)"><ellipse rx="5" ry="6"/><circle cx="-5" cy="-8" r="2.2"/><circle cx="0" cy="-10" r="2.2"/><circle cx="5" cy="-8" r="2.2"/></g>`).join("")}</g>`+
+    `<g fill="#F08A24"><ellipse cx="330" cy="50" rx="18" ry="10"/><path d="M344 46 Q352 40 356 30 L362 32 Q358 44 348 52 Z"/><ellipse cx="361" cy="29" rx="7" ry="5"/><path d="M314 48 Q302 50 296 58 Q306 56 316 54 Z"/><rect x="320" y="54" width="6" height="10" rx="3"/><rect x="336" y="54" width="6" height="10" rx="3"/><path d="M322 40 l4 -6 l4 6 M332 40 l4 -6 l4 6" /></g><circle cx="363" cy="28" r="1.4" fill="#33261C"/>`)},
+  car:{tint:"#F1F4F8",svg:STRIP(
+    `<rect x="0" y="44" width="400" height="20" fill="#6E6E73"/>`+[10,60,110,160,210,260,310,360].map(x=>`<rect x="${x}" y="52" width="26" height="4" rx="2" fill="#fff"/>`).join("")+
+    `<g transform="translate(40 18)"><path d="M0 22 L4 10 Q8 6 14 6 L36 6 Q42 6 46 12 L54 14 Q60 15 60 22 L60 26 L0 26 Z" fill="#E5533D"/><path d="M12 10 L18 10 L18 16 L8 16 Z M22 10 L34 10 L40 16 L22 16 Z" fill="#CFE8F6"/><circle cx="14" cy="28" r="6" fill="#33261C"/><circle cx="46" cy="28" r="6" fill="#33261C"/><circle cx="14" cy="28" r="2.4" fill="#ccc"/><circle cx="46" cy="28" r="2.4" fill="#ccc"/></g>`+
+    `<g transform="translate(360 18) scale(-1 1)"><path d="M0 22 L4 10 Q8 6 14 6 L36 6 Q42 6 46 12 L54 14 Q60 15 60 22 L60 26 L0 26 Z" fill="#2F6FB5"/><path d="M12 10 L18 10 L18 16 L8 16 Z M22 10 L34 10 L40 16 L22 16 Z" fill="#CFE8F6"/><circle cx="14" cy="28" r="6" fill="#33261C"/><circle cx="46" cy="28" r="6" fill="#33261C"/><circle cx="14" cy="28" r="2.4" fill="#ccc"/><circle cx="46" cy="28" r="2.4" fill="#ccc"/></g>`+
+    `<g transform="translate(196 6)"><rect x="-3" y="6" width="6" height="38" fill="#9A9A9F"/><rect x="-10" y="-4" width="20" height="14" rx="3" fill="#F4C430"/><circle cx="-4" cy="3" r="2.6" fill="#E5533D"/><circle cx="4" cy="3" r="2.6" fill="#3F9E5A"/></g>`)},
+  princess:{tint:"#FFF0F6",svg:STRIP(
+    `<path d="M0 64 V50 Q25 40 50 50 T100 50 T150 50 T200 50 T250 50 T300 50 T350 50 T400 50 V64 Z" fill="#F7C6D9"/>`+
+    `<g transform="translate(318 4)"><rect x="8" y="22" width="56" height="38" fill="#FFE3EE"/><rect x="0" y="12" width="16" height="48" fill="#FBD0E0"/><rect x="56" y="12" width="16" height="48" fill="#FBD0E0"/><path d="M-2 12 L8 -4 L18 12 Z M54 12 L64 -4 L74 12 Z" fill="#E06C9F"/><rect x="28" y="40" width="16" height="20" rx="8" fill="#B0507A"/><path d="M26 22 L36 8 L46 22 Z" fill="#E06C9F"/><path d="M8 -4 V-12 L15 -9 Z" fill="#F4C430"/></g>`+
+    [[30,16,7],[78,30,5],[130,12,6],[176,34,4],[230,18,6],[276,30,5]].map(([x,y,r])=>`<path transform="translate(${x} ${y})" d="M0 -${r*1.6} Q${r*.3} -${r*.3} ${r*1.6} 0 Q${r*.3} ${r*.3} 0 ${r*1.6} Q-${r*.3} ${r*.3} -${r*1.6} 0 Q-${r*.3} -${r*.3} 0 -${r*1.6} Z" fill="#F4C430"/>`).join("")+
+    `<path transform="translate(104 48) scale(.9)" d="M0 6 C-10 -4 -4 -12 0 -6 C4 -12 10 -4 0 6 Z" fill="#E06C9F"/><path transform="translate(250 50) scale(.8)" d="M0 6 C-10 -4 -4 -12 0 -6 C4 -12 10 -4 0 6 Z" fill="#E06C9F"/>`)},
+  space:{tint:"#EEF1FA",svg:STRIP(
+    `<path d="M0 64 V18 Q200 4 400 18 V64 Z" fill="#24325F"/>`+
+    [[30,30],[70,48],[120,26],[160,52],[210,36],[250,22],[290,50],[330,30],[370,46],[100,42],[230,54]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${i%3?1.4:2.2}" fill="#fff"/>`).join("")+
+    `<circle cx="330" cy="38" r="13" fill="#F08A24"/><ellipse cx="330" cy="38" rx="22" ry="5" fill="none" stroke="#FFD27A" stroke-width="2.4" transform="rotate(-15 330 38)"/>`+
+    `<g transform="translate(64 38) rotate(40)"><path d="M0 -20 Q9 -10 8 10 L-8 10 Q-9 -10 0 -20 Z" fill="#fff"/><circle cy="-4" r="4" fill="#5DA9E9"/><path d="M-8 4 L-14 14 L-8 12 Z M8 4 L14 14 L8 12 Z" fill="#E5533D"/><path d="M-5 11 Q0 26 5 11 Z" fill="#F4C430"/></g>`+
+    `<circle cx="190" cy="34" r="7" fill="#C9D3EA"/><circle cx="188" cy="32" r="1.6" fill="#9AA6C4"/><circle cx="193" cy="36" r="1.2" fill="#9AA6C4"/>`)},
+  sea:{tint:"#EAF6FB",svg:STRIP(
+    `<path d="M0 64 V40 Q25 30 50 40 T100 40 T150 40 T200 40 T250 40 T300 40 T350 40 T400 40 V64 Z" fill="#7CC4E8"/><path d="M0 64 V50 Q25 42 50 50 T100 50 T150 50 T200 50 T250 50 T300 50 T350 50 T400 50 V64 Z" fill="#3D9BD3"/>`+
+    `<g transform="translate(120 52)"><ellipse rx="13" ry="8" fill="#F08A24"/><path d="M12 0 L22 -7 L22 7 Z" fill="#F08A24"/><circle cx="-6" cy="-2" r="1.8" fill="#33261C"/></g>`+
+    `<g transform="translate(290 55) scale(-1 1)"><ellipse rx="11" ry="7" fill="#F4C430"/><path d="M10 0 L19 -6 L19 6 Z" fill="#F4C430"/><circle cx="-5" cy="-2" r="1.6" fill="#33261C"/></g>`+
+    [[60,26,4],[70,14,3],[200,22,5],[212,10,3],[350,24,4],[340,12,2.5]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#7CC4E8" stroke-width="1.8"/>`).join("")+
+    `<path d="M20 64 Q16 50 22 40 Q26 50 24 64 Z M376 64 Q372 46 380 36 Q384 48 382 64 Z" fill="#3F9E5A"/>`)},
+  puppy:{tint:"#FBF4EA",svg:STRIP(
+    `<path d="M0 64 V52 Q200 42 400 52 V64 Z" fill="#E8D3B5"/>`+
+    [[30,40,-12],[80,28,8],[130,42,-6],[260,30,10],[310,42,-10],[360,28,6]].map(([x,y,a])=>`<g transform="translate(${x} ${y}) rotate(${a})" fill="#A0703F"><ellipse cy="4" rx="7" ry="6"/><circle cx="-7" cy="-5" r="3"/><circle cx="-2.5" cy="-9" r="3"/><circle cx="2.5" cy="-9" r="3"/><circle cx="7" cy="-5" r="3"/></g>`).join("")+
+    `<g transform="translate(196 30) rotate(-10)"><rect x="-16" y="-4" width="32" height="8" rx="3" fill="#fff" stroke="#D8C3A3" stroke-width="1.5"/><circle cx="-16" cy="-4" r="5" fill="#fff" stroke="#D8C3A3" stroke-width="1.5"/><circle cx="-16" cy="4" r="5" fill="#fff" stroke="#D8C3A3" stroke-width="1.5"/><circle cx="16" cy="-4" r="5" fill="#fff" stroke="#D8C3A3" stroke-width="1.5"/><circle cx="16" cy="4" r="5" fill="#fff" stroke="#D8C3A3" stroke-width="1.5"/></g>`)},
+  drawing:{tint:"#FFF6EF",svg:STRIP(
+    `<path d="M10 52 L40 30 L60 54 L90 28 L112 52 L138 30" fill="none" stroke="#E5533D" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`+
+    `<path d="M150 50 Q170 22 190 50 T230 50" fill="none" stroke="#2F6FB5" stroke-width="5" stroke-linecap="round"/>`+
+    `<path d="M246 36 C256 28 270 30 268 42 C266 52 252 56 248 48 C244 40 262 36 272 44" fill="none" stroke="#3F9E5A" stroke-width="5" stroke-linecap="round"/>`+
+    `<g transform="translate(330 40) rotate(-30)"><rect x="-30" y="-6" width="52" height="12" rx="2" fill="#F4C430"/><rect x="-24" y="-6" width="6" height="12" fill="#E5A800"/><path d="M22 -6 L34 0 L22 6 Z" fill="#F6D9A8"/><path d="M30 -2 L34 0 L30 2 Z" fill="#F4C430"/></g>`+
+    `<circle cx="380" cy="20" r="7" fill="#E06C9F"/><circle cx="371" cy="14" r="3" fill="#E06C9F"/><circle cx="388" cy="29" r="3" fill="#E06C9F"/>`)}
+};
+/* crown drawn straight onto the child's drawing (canvas paths, so the canvas stays exportable everywhere) */
+function drawCrown(g,cx,cy,w){const s=w/40;g.save();g.translate(cx,cy);g.scale(s,s);
+  g.beginPath();g.moveTo(-17,6);g.lineTo(-19,-10);g.lineTo(-9,-2);g.lineTo(0,-14);g.lineTo(9,-2);g.lineTo(19,-10);g.lineTo(17,6);g.closePath();
+  g.fillStyle="#F4C430";g.fill();g.lineWidth=2;g.lineJoin="round";g.strokeStyle="#C9932A";g.stroke();
+  g.fillStyle="#E5533D";g.beginPath();g.arc(0,-1,3,0,7);g.fill();g.fillStyle="#fff";g.beginPath();g.arc(-10,2,2,0,7);g.arc(10,2,2,0,7);g.fill();g.restore();}
+
+/* the child's own drawing becomes the hero of the book (stays on this device) */
+const PALCOL={bear:"#FABBC3",tiger:"#FEA651",deer:"#93C8C1",pango:"#FDCD54",ele:"#C0CCDA"};
+const CRAY=["#33261C","#C8372B","#F08A24","#F4C430","#3F9E5A","#2F6FB5","#E06C9F","#8A5A2B"];
+let penC=CRAY[0], strokes=[], curS=null;
+const pc=$("#padC"), px=pc.getContext("2d");
+function padInk(s,from){px.strokeStyle=s.c;px.lineWidth=s.w;px.lineCap="round";px.lineJoin="round";px.beginPath();
+  const p=s.p,a=Math.max(0,from-1);px.moveTo(p[a][0],p[a][1]);if(p.length===1)px.lineTo(p[0][0]+.1,p[0][1]);for(let i=a+1;i<p.length;i++)px.lineTo(p[i][0],p[i][1]);px.stroke()}
+function padRedraw(){px.fillStyle="#fff";px.fillRect(0,0,600,600);strokes.forEach(s=>padInk(s,0));$("#padHint").hidden=strokes.length>0}
+function padPt(e){const r=pc.getBoundingClientRect();return [(e.clientX-r.left)*600/r.width,(e.clientY-r.top)*600/r.height]}
+pc.addEventListener("pointerdown",e=>{e.preventDefault();try{pc.setPointerCapture(e.pointerId)}catch(_){}curS={c:penC,w:16,p:[padPt(e)]};strokes.push(curS);$("#padHint").hidden=true;padInk(curS,0)});
+pc.addEventListener("pointermove",e=>{if(!curS)return;e.preventDefault();curS.p.push(padPt(e));padInk(curS,curS.p.length-1)});
+["pointerup","pointercancel","pointerleave"].forEach(t=>pc.addEventListener(t,()=>{curS=null}));
+$("#crayons").innerHTML=CRAY.map((c,i)=>`<button type="button" data-c="${c}" style="background:${c}" aria-label="蠟筆顏色 ${i+1}" aria-pressed="${i===0}"></button>`).join("");
+$("#crayons").addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;penC=b.dataset.c;$("#crayons").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b))});
+$("#padUndo").onclick=()=>{strokes.pop();padRedraw()};
+$("#padClear").onclick=()=>{strokes=[];padRedraw()};
+padRedraw();
+function myDrawing(){
+  if(!strokes.length) return null;
+  let x0=600,y0=600,x1=0,y1=0;
+  strokes.forEach(s=>s.p.forEach(([x,y])=>{x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}));
+  const pad=24, side=Math.max(x1-x0,y1-y0)+pad*2, cx=(x0+x1)/2, cy=(y0+y1)/2;
+  const c=document.createElement("canvas"); c.width=c.height=320; const g=c.getContext("2d");
+  g.fillStyle="#fff"; g.fillRect(0,0,320,320);
+  if(sLike==="princess"){const sc=262/side; g.drawImage(pc,cx-side/2,cy-side/2,side,side,29,54,262,262); drawCrown(g,160+(x0+(x1-x0)/2-cx)*sc,54+pad*sc-14,104);}
+  else g.drawImage(pc,cx-side/2,cy-side/2,side,side,0,0,320,320);
+  return c.toDataURL("image/png");
+}
+/* hero: princess choices for "公主故事", otherwise (or by choice) the child's own drawing */
+let sHero="p1";
+function heroUI(){
+  const pr=sLike==="princess";
+  $("#heroes").hidden=!pr;
+  $("#heroLab").textContent=pr?"選一位公主當主角，或自己畫（畫的主角會戴上皇冠）":"畫出小朋友自己（也可以不畫）";
+  if(pr) $("#heroes").innerHTML=Object.keys(PRINCESS).map(k=>`<button type="button" role="radio" aria-checked="${sHero===k}" data-hero="${k}"><img src="${PRINCESS[k].src}" alt="">${PRINCESS[k].name}</button>`).join("")+
+    `<button type="button" role="radio" aria-checked="${sHero==="draw"}" data-hero="draw"><span class="pen" aria-hidden="true">✏️</span>自己畫</button>`;
+  $("#padBox").hidden=pr&&sHero!=="draw";
+}
+$("#heroes").addEventListener("click",e=>{const b=e.target.closest("[data-hero]");if(!b)return;sHero=b.dataset.hero;heroUI()});
+function myHero(){
+  if(sLike==="princess"&&sHero!=="draw") return {src:PRINCESS[sHero].src,kind:"princess"};
+  const d=myDrawing(); return d?{src:d,kind:"draw"}:null;
+}
+heroUI();
 function sState(s){$("#storyForm").hidden=s!=="form";$("#storyWait").hidden=s!=="wait";$("#storyBook").hidden=s!=="book";window.scrollTo(0,0)}
 async function makeBook(){
   if(making) return;
@@ -743,19 +913,19 @@ async function makeBook(){
   try{ const ai=await storyAI(n,sPal,sLike); if(ai&&okPages(ai,n)){pages=ai.map(s=>String(s).trim());src="ai"} }catch(e){}
   if(!pages) pages=tplPages(n,sPal,sLike);
   const wait=1500-(Date.now()-t0); if(wait>0) await new Promise(r=>setTimeout(r,wait));
-  BOOK={n,pal:sPal,like:sLike,pages,src}; bi=0; making=false; $("#sMake").disabled=false;
+  const H=myHero(); BOOK={n,pal:sPal,like:sLike,pages,src,me:H?H.src:null,meKind:H?H.kind:null}; $("#storyBook").style.setProperty("--pal",PALCOL[sPal]); $("#storyBook").style.setProperty("--tint",THEME[sLike].tint); bi=0; making=false; $("#sMake").disabled=false;
   if(cur!=="story") return;
   sState("book"); renderPage(); SND.voice(BOOK.pal);
 }
 function pageHTML(i){
   const B=BOOK, last=B.pages.length+1;
-  if(i===0) return `<div class="pic"><img class="ill" src="media/cover.jpg" alt="健康小隊在樹屋前"></div><div class="txt cov"><small>健康小隊專屬繪本</small><b>${esc(B.n)}和${PALS[B.pal]}的<br>流感大作戰</b><span>${B.src==="ai"?`AI 依照${esc(B.n)}喜歡的${LIKES[B.like][1]}寫成`:`健康小隊為${esc(B.n)}寫的故事`}</span></div>`;
+  if(i===0) return `<div class="pic"><img class="ill" src="media/cover.jpg" alt="健康小隊在樹屋前"></div><div class="txt cov">${B.me?`<img class="me-big" src="${B.me}" alt="${esc(B.n)}畫的自己">`:""}<small>健康小隊專屬繪本</small><b>${esc(B.n)}和${PALS[B.pal]}的<br>流感大作戰</b><span>${B.src==="ai"?`AI 依照${esc(B.n)}喜歡的${LIKES[B.like][1]}寫成`:`健康小隊為${esc(B.n)}寫的故事`}${B.meKind==="draw"?`<br>主角是${esc(B.n)}自己畫的喔！`:B.meKind==="princess"?`<br>今天的${esc(B.n)}是一位小公主！`:""}</span></div>`;
   if(i===last) return `<div class="pic"><img class="ill" src="media/story/parents.jpg" alt="象醫師"></div><div class="txt par"><b>給爸爸媽媽</b><p style="margin:6px 0 0">孩子出現這些情況，請盡快就醫：</p><ul><li>燒超過三天</li><li>呼吸很喘</li><li>精神很不好</li></ul><p style="margin:0">嘴唇發紫、抽搐或叫不醒，請立刻撥打 <a href="tel:119">119</a>。</p><p class="muted" style="margin:10px 0 0">在家照顧：好好休息、多喝水、醫師開的藥按時吃完、勤洗手戴口罩。內容經兒科審閱。</p></div>`;
-  return `<div class="pic"><img class="ill" src="media/story/${SPAGES[i-1].img}.jpg" alt=""><img class="pal" src="${IMG[B.pal]}" alt="${PALS[B.pal]}"></div><div class="txt">${esc(B.pages[i-1])}</div>`;
+  return `<div class="pic"><img class="ill" src="media/story/${SPAGES[i-1].img}.jpg" alt=""><img class="pal" src="${IMG[B.pal]}" alt="${PALS[B.pal]}">${B.me?`<img class="me" src="${B.me}" alt="${esc(B.n)}">`:""}</div><div class="txt">${esc(B.pages[i-1])}</div>`;
 }
 function renderPage(){
   const N=BOOK.pages.length+2;
-  $("#bookPage").innerHTML=pageHTML(bi);
+  $("#bookPage").innerHTML=pageHTML(bi)+(bi<=BOOK.pages.length?`<div class="deco">${THEME[BOOK.like].svg}</div>`:"");
   $("#bNum").textContent=`${bi+1} / ${N}`; $("#bPrev").disabled=bi===0; $("#bNext").disabled=bi===N-1;
   $("#bSrc").textContent=BOOK.src==="ai"?"這本繪本由 AI 撰寫，照護重點是固定的，而且已經自動檢查過。":"這次使用健康小隊審過的範本故事。";
 }
@@ -770,8 +940,8 @@ $("#bPrint").onclick=async()=>{
   if(!BOOK) return; const N=BOOK.pages.length+2; let pb=$("#printBook");
   if(!pb){pb=document.createElement("div");pb.id="printBook";pb.setAttribute("aria-hidden","true");document.body.appendChild(pb)}
   const B=BOOK; const parts=[];
-  parts.push(`<section class="ppage"><img src="media/cover.jpg" alt=""><h1>${esc(B.n)}和${PALS[B.pal]}的流感大作戰</h1><p class="c">健康小隊專屬繪本｜嘉義基督教醫院 急診醫學部</p></section>`);
-  B.pages.forEach((t,i)=>parts.push(`<section class="ppage"><img src="media/story/${SPAGES[i].img}.jpg" alt=""><p>${esc(t)}</p></section>`));
+  parts.push(`<section class="ppage"><img src="media/cover.jpg" alt="">${B.me?`<img class="pmeBig" src="${B.me}" alt="">`:""}<h1>${esc(B.n)}和${PALS[B.pal]}的流感大作戰</h1><p class="c">健康小隊專屬繪本｜嘉義基督教醫院 急診醫學部</p></section>`);
+  B.pages.forEach((t,i)=>parts.push(`<section class="ppage"><div class="pw"><img src="media/story/${SPAGES[i].img}.jpg" alt="">${B.me?`<img class="pme" src="${B.me}" alt="">`:""}</div><p>${esc(t)}</p><div class="pdeco">${THEME[B.like].svg}</div></section>`));
   parts.push(`<section class="ppage"><img src="media/story/parents.jpg" alt=""><h2>給爸爸媽媽</h2><p style="font-size:15pt">孩子出現這些情況，請盡快就醫：</p><ul><li>燒超過三天</li><li>呼吸很喘</li><li>精神很不好</li></ul><p style="font-size:15pt">嘴唇發紫、抽搐或叫不醒，請立刻撥打 119。</p><p class="c">在家照顧：好好休息、多喝水、醫師開的藥按時吃完、勤洗手戴口罩。內容經兒科審閱。</p></section>`);
   pb.innerHTML=parts.join("");
   await Promise.all([...pb.querySelectorAll("img")].map(im=>im.complete?0:new Promise(r=>{im.onload=im.onerror=r})));
